@@ -1,0 +1,25 @@
+app:
+    build: .
+    ports:
+      - "9000:9000"
+    depends_on:
+      db:
+        condition: service_healthy # DBが「健康（起動完了）」になるまで待つ
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/instadb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=instadb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    healthcheck: # DBが本当に動いているかチェックする命令
+      test: ["CMD-SHELL", "pg_isready -U postgres -d instadb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./db_data:/var/lib/postgresql/data

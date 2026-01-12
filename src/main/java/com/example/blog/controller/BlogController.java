@@ -1,13 +1,20 @@
 package com.example.blog.controller;
 
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.example.blog.models.Follow;
+//import com.example.blog.models.Follow;
 import com.example.blog.models.Post;
+import com.example.blog.repository.FollowRepository;
+//import com.example.blog.repository.FollowRepository;
 import com.example.blog.repository.PostRepository;
 
 @Controller
@@ -15,6 +22,9 @@ public class BlogController {
 
     @Autowired
     private PostRepository postRepository;
+    
+    @Autowired 
+    private FollowRepository followRepository;
 
     // 1. トップページを表示する
     @GetMapping("/")
@@ -25,7 +35,14 @@ public class BlogController {
         java.util.Collections.reverse(post);
         // HTML（Thymeleaf）側に "posts" という名前でデータを渡します
         model.addAttribute("posts", post);
+        
+        String me = "GuestUser";
+        model.addAttribute("profileName", me);
+        model.addAttribute("followingCount", followRepository.countByFollowerName(me));
+        model.addAttribute("followerCount", followRepository.countByFollowingName(me));
+
         return "home";
+        
     }
 
     // 2. 新規投稿を受け取る
@@ -66,10 +83,49 @@ public class BlogController {
         // 更新後はトップページに戻ります
         return "redirect:/";
     }
-    //いいね
-    @PostMapping("/post/{id}/like") // ← HTMLの @{/post/{id}/like} と一致
-    public String likePost(@PathVariable Long id) {
-        postRepository.incrementLikes(id); // Repositoryの命令を呼び出す
-        return "redirect:/"; // 処理が終わったらホームへ戻る
+ // いいね（AJAX版）
+    @PostMapping("/post/{id}/like")
+    @ResponseBody // ← これをつけると、リダイレクトせずに「値」だけを返せるようになります
+    public Integer likePost(@PathVariable Long id) {
+        // 1. カウントを増やす
+        postRepository.incrementLikes(id);
+        
+        // 2. 最新のいいね数を取得して、その「数字」だけを返す
+        return postRepository.findById(id)
+                .map(Post::getLikesCount)
+                .orElse(0);
+    }
+    
+    @PostMapping("/follow/{name}")
+    @ResponseBody
+    public String toggleFollow(@PathVariable String name) {
+        String me = "GuestUser"; // 本来はログインユーザー
+        
+        if (followRepository.existsByFollowerNameAndFollowingName(me, name)) {
+            followRepository.deleteByFollowerNameAndFollowingName(me, name);
+            return "unfollowed";
+        } else {
+            Follow follow = new Follow();
+            follow.setFollowerName(me);
+            follow.setFollowingName(name);
+            followRepository.save(follow);
+            return "followed";
+        }
+    }
+    
+    @GetMapping("/profile/{name}")
+    public String showProfile(@PathVariable String name, Model model) {
+        // 1. その人が「誰を」フォローしているか数える
+        long followingCount = followRepository.countByFollowerName(name);
+        
+        // 2. その人が「誰に」フォローされているか（フォロワー）数える
+        long followerCount = followRepository.countByFollowingName(name);
+
+        // HTMLに渡す
+        model.addAttribute("profileName", name); // 画面に表示する名前
+        model.addAttribute("followingCount", followingCount);
+        model.addAttribute("followerCount", followerCount);
+        
+        return "profile";
     }
 }

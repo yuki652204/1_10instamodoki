@@ -1,0 +1,17 @@
+/* フォローアイコンのホバー演出 */
+.fa-user-plus {
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.fa-user-plus:hover {
+    transform: scale(1.2); /* マウスを乗せると少し大きく */
+    color: #0056b3;        /* 少し濃い青に */
+}
+
+/* ボタンの枠線を消してアイコンだけに見せる */
+.btn-link {
+    border: none;
+    background: none;
+    text-decoration: none;
+}
