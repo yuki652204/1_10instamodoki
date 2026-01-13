@@ -48,9 +48,15 @@
                 <div class="card h-100 shadow-sm">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <span class="fw-bold">@Admin</span>
-                        <button type="button" class="btn btn-sm btn-outline-primary follow-button" data-name="Admin">
-                            フォローする
-                        </button>
+						
+						
+						<button type="button" 
+						        th:classappend="${post.following} ? 'btn-primary' : 'btn-outline-primary'" 
+						        class="btn btn-sm follow-button" 
+						        th:data-name="${post.authorName != null ? post.authorName : 'Admin'}"
+						        th:text="${post.following} ? 'フォロー中' : 'フォローする'">
+						    フォローする
+						</button>
                     </div>
 
                     <img th:src="${post.imageUrl}" class="card-img-top" alt="post image" style="height: 250px; object-fit: cover;">
@@ -81,39 +87,25 @@
         // DOMContentLoadedで囲むことで確実にボタンを探せるようにします
         document.addEventListener('DOMContentLoaded', () => {
             
-            // フォロー処理
-            document.querySelectorAll('.follow-button').forEach(button => {
-                button.addEventListener('click', function() {
-                    const targetName = this.getAttribute('data-name');
-                    fetch(`/follow/${targetName}`, {
-                        method: 'POST',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    })
-                    .then(response => response.text())
-                    .then(status => {
-                        if (status === 'followed') {
-                            this.textContent = 'フォロー中';
-                            this.classList.replace('btn-outline-primary', 'btn-primary');
-                        } else {
-                            this.textContent = 'フォローする';
-                            this.classList.replace('btn-primary', 'btn-outline-primary');
-							location.reload();
-                        }
-						
-						// フォロー処理部分
-						fetch(`/follow/${targetName}`, {
-						    method: 'POST',
-						    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-						})
-						.then(response => response.text())
-						.then(status => {
-						    // どんな結果であれ、一度リロードして最新のカウントをDBから持ってくる
-						    location.reload(); 
-						});
-                    });
-                });
-            });
-
+			// フォロー処理
+			document.querySelectorAll('.follow-button').forEach(button => {
+			    button.addEventListener('click', function() {
+			        const targetName = this.getAttribute('data-name');
+			        
+			        // 送信は1回だけにします
+			        fetch(`/follow/${targetName}`, {
+			            method: 'POST',
+			            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+			        })
+			        .then(response => response.text())
+			        .then(status => {
+			            // サーバー側で処理が終わったら、ページをリロードする
+			            // これにより、Java側の isFollowingAdmin 判定が最新の状態で反映されます
+			            location.reload(); 
+			        });
+			    });
+			});
+			
             // いいね処理
             document.querySelectorAll('.like-button').forEach(button => {
                 button.addEventListener('click', function() {

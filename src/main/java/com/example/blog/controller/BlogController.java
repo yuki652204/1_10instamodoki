@@ -26,23 +26,35 @@ public class BlogController {
     @Autowired 
     private FollowRepository followRepository;
 
-    // 1. トップページを表示する
+    //toppage
     @GetMapping("/")
     public String index(Model model) {
-        // データベースからすべての投稿を取得します
-        List<Post> post = postRepository.findAll();
+        // 1. 全投稿を取得してリストにする
+        List<Post> allPosts = postRepository.findAll();
         // リストの順番を逆（新着順）に並べ替えます
-        java.util.Collections.reverse(post);
-        // HTML（Thymeleaf）側に "posts" という名前でデータを渡します
-        model.addAttribute("posts", post);
+        java.util.Collections.reverse(allPosts);
         
         String me = "GuestUser";
-        model.addAttribute("profileName", me);
+        String target = "Admin"; 
+
+        // 2. 投稿リストをループして、1つずつフォロー判定をセットする
+        for (Post p : allPosts) {
+            // 今は全員 target(Admin) ですが、将来的に投稿者ごとに変えることも可能です
+            boolean status = followRepository.existsByFollowerNameAndFollowingName(me, target);
+            p.setFollowing(status); // Post.javaに追加したメソッドを呼び出す
+        }
+
+        // 3. HTMLにデータを渡す
+        model.addAttribute("posts", allPosts); // HTMLの th:each="post : ${posts}" と連動
+        model.addAttribute("profileName", me);       
         model.addAttribute("followingCount", followRepository.countByFollowerName(me));
         model.addAttribute("followerCount", followRepository.countByFollowingName(me));
+        
+        // ヘッダーや特定のボタンで使う場合のために残しておきます
+        boolean isFollowingAdmin = followRepository.existsByFollowerNameAndFollowingName(me, target);
+        model.addAttribute("isFollowingAdmin", isFollowingAdmin);
 
         return "home";
-        
     }
 
     // 2. 新規投稿を受け取る
@@ -126,6 +138,11 @@ public class BlogController {
         model.addAttribute("followingCount", followingCount);
         model.addAttribute("followerCount", followerCount);
         
-        return "profile";
+        boolean isFollowing = followRepository.existsByFollowerNameAndFollowingName(name, name);
+        model.addAttribute("isFollowing", isFollowing);
+
+        return "home";
+        
+        
     }
 }

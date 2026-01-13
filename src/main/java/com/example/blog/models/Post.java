@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,6 +35,14 @@ public class Post { // Pを大文字に修正
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+    
+ // Post.java の中に追加
+    @Transient // データベースには保存しない、一時的なデータという意味
+    private boolean isFollowing;
+
+    
+    public boolean isFollowing() { return isFollowing; }
+    public void setFollowing(boolean following) { isFollowing = following; }
     
  // 既存のフィールドの下に追加
     private Integer likesCount = 0; // SQLの likes_count と自動で紐付きます
