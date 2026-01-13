@@ -53,10 +53,15 @@
 						<button type="button" 
 						        th:classappend="${post.following} ? 'btn-primary' : 'btn-outline-primary'" 
 						        class="btn btn-sm follow-button" 
-						        th:data-name="${post.authorName != null ? post.authorName : 'Admin'}"
+						        
+								th:data-data-name="${post.authorName != null ? post.authorName : 'Admin'}"
+
+								th:data-name="'Admin'"
+								
 						        th:text="${post.following} ? 'フォロー中' : 'フォローする'">
 						    フォローする
 						</button>
+						
                     </div>
 
                     <img th:src="${post.imageUrl}" class="card-img-top" alt="post image" style="height: 250px; object-fit: cover;">

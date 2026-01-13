@@ -35,6 +35,7 @@ public class Post { // Pを大文字に修正
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+    private String authorName = "Admin"; // 投稿者名のフィールドを追加
     
  // Post.java の中に追加
     @Transient // データベースには保存しない、一時的なデータという意味
@@ -43,6 +44,17 @@ public class Post { // Pを大文字に修正
     
     public boolean isFollowing() { return isFollowing; }
     public void setFollowing(boolean following) { isFollowing = following; }
+    
+    
+ // これを追加してください
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
+    }
+    
     
  // 既存のフィールドの下に追加
     private Integer likesCount = 0; // SQLの likes_count と自動で紐付きます
