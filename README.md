@@ -21,3 +21,17 @@
 1. このリポジトリをクローンします。
 2. `./mvnw spring-boot:run` を実行します。
 3. ブラウザで `http://localhost:9000` にアクセスします。
+
+
+
+## 環境設定
+
+本プロジェクトでは Google OAuth2 を使用しています。実行には以下の設定が必要です。
+
+1. `src/main/resources/` 直下に `application.properties` を作成します。
+2. 以下の内容を記述し、`YOUR_CLIENT_ID` と `YOUR_CLIENT_SECRET` を自身の Google Cloud Console から取得した値に置き換えてください。
+
+```properties
+# Google OAuth2 Settings
+spring.security.oauth2.client.registration.google.client-id=YOUR_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=YOUR_CLIENT_SECRET
