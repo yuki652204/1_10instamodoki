@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Instacopy</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #fafafa; display: flex; align-items: center; height: 100vh; }
+        .login-card { max-width: 350px; margin: auto; background: white; border: 1px solid #dbdbdb; padding: 40px; text-align: center; }
+        .btn-google { background-color: #4285F4; color: white; width: 100%; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1 class="mb-4">Instacopy</h1>
+        <p class="text-muted">写真や動画をチェックするにはログインしてください</p>
+        
+        <a th:href="@{/oauth2/authorization/google}" class="btn btn-google">
+            Googleでログイン
+        </a>
+
+        <div th:if="${param.logout}" class="alert alert-info mt-3">
+            ログアウトしました
+        </div>
+    </div>
+</body>
+</html>

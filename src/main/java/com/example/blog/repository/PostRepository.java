@@ -9,9 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    // もともと何かメソッドがあればここに残す
-    
-    // 今回追加する「いいね増量」メソッド
+    // 「いいね」を +1 する
     @Transactional
     @Modifying
     @Query("UPDATE Post p SET p.likesCount = p.likesCount + 1 WHERE p.id = :id")

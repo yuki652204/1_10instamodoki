@@ -1,148 +1,120 @@
 package com.example.blog.controller;
 
+import java.util.Collections;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.blog.models.Follow;
-//import com.example.blog.models.Follow;
 import com.example.blog.models.Post;
 import com.example.blog.repository.FollowRepository;
-//import com.example.blog.repository.FollowRepository;
 import com.example.blog.repository.PostRepository;
 
 @Controller
+@RequestMapping("/") // トップページは / に統一
 public class BlogController {
 
-    @Autowired
-    private PostRepository postRepository;
-    
-    @Autowired 
-    private FollowRepository followRepository;
+    private final PostRepository postRepository;
+    private final FollowRepository followRepository;
 
-    //toppage
-    @GetMapping("/")
-    public String index(Model model) {
-        // 1. 全投稿を取得してリストにする
-        List<Post> allPosts = postRepository.findAll();
-        // リストの順番を逆（新着順）に並べ替えます
-        java.util.Collections.reverse(allPosts);
+    public BlogController(PostRepository postRepository,
+                          FollowRepository followRepository) {
+        this.postRepository = postRepository;
+        this.followRepository = followRepository;
+    }
+
+ // トップページ（ホーム）
+    @GetMapping
+    public String index(Model model, @AuthenticationPrincipal OAuth2User principal) {
+
+        // 1. ログインユーザー名とアイコンを取得
+        String me = (principal != null) ? principal.getAttribute("name") : "GuestUser";
+        String userIcon = (principal != null) ? principal.getAttribute("picture") : "";
         
-        String me = "GuestUser";
+        // 2. ターゲット設定（現状のロジックで必要な変数）
         String target = "Admin"; 
 
-        // 2. 投稿リストをループして、1つずつフォロー判定をセットする
-        for (Post p : allPosts) {
-            // 今は全員 target(Admin) ですが、将来的に投稿者ごとに変えることも可能です
-            boolean status = followRepository.existsByFollowerNameAndFollowingName(me, target);
-            p.setFollowing(status); // Post.javaに追加したメソッドを呼び出す
+        // 3. 投稿一覧の取得
+        List<Post> posts = postRepository.findAll();
+        Collections.reverse(posts); // 新着順
+
+        // 4. 各投稿に対して自分がフォローしているかチェック
+        for (Post post : posts) {
+            // ここで target 変数を使用しているため、上記2番での定義が必要です
+            boolean following =
+                    followRepository.existsByFollowerNameAndFollowingName(me, target);
+            post.setFollowing(following);
         }
 
-        // 3. HTMLにデータを渡す
-        model.addAttribute("posts", allPosts); // HTMLの th:each="post : ${posts}" と連動
-        model.addAttribute("profileName", me);       
+        // 5. Modelに値をセット
+        model.addAttribute("posts", posts);
+        model.addAttribute("profileName", me);
+        model.addAttribute("userIcon", userIcon); // アイコンURLを渡す
+        model.addAttribute("userIcon", principal.getAttribute("picture"));
         model.addAttribute("followingCount", followRepository.countByFollowerName(me));
         model.addAttribute("followerCount", followRepository.countByFollowingName(me));
-        
-        // ヘッダーや特定のボタンで使う場合のために残しておきます
-        boolean isFollowingAdmin = followRepository.existsByFollowerNameAndFollowingName(me, target);
+
+        // ここでも target 変数を使用
+        boolean isFollowingAdmin =
+                followRepository.existsByFollowerNameAndFollowingName(me, target);
         model.addAttribute("isFollowingAdmin", isFollowingAdmin);
 
-        return "home";
+        return "home"; // templates/home.html
     }
-
-    // 2. 新規投稿を受け取る
-    @PostMapping("/post")
-    public String createPost(Post post) {
-        // 送られてきた内容をデータベースに新規保存します
-        postRepository.save(post);
-        // 保存後はトップページに画面を切り替えます（二重投稿防止）
-        return "redirect:/";
-    }
-    
-    // 3. 削除処理
-    // URLの {id} の部分を @PathVariable で受け取ります
-    @PostMapping("/post/delete/{id}")
-    public String deletePost(@PathVariable Long id) {
-        // 指定されたIDのデータをデータベースから削除します
-        postRepository.deleteById(id);
-        // 削除後はトップページに戻ります
-        return "redirect:/";
-    }
-    
-    // 4. 編集画面を表示する
-    @GetMapping("/post/edit/{id}")
-    public String editForm(@PathVariable Long id, Model model) {
-        // IDで検索し、データがなければエラーを投げます（orElseThrow）
-        Post post = postRepository.findById(id).orElseThrow();
-        // 見つかった投稿データを、編集画面（edit.html）に渡します
-        model.addAttribute("post", post);
-        // edit.html を表示します
-        return "edit";
-    }
-
-    // 5. 更新を実行する
-    @PostMapping("/post/update")
-    public String updatePost(Post post) {
-        // saveメソッドは「IDが含まれている場合」は新規追加ではなく「上書き（更新）」を行います
-        postRepository.save(post);
-        // 更新後はトップページに戻ります
-        return "redirect:/";
-    }
- // いいね（AJAX版）
+    // いいね（AJAX）
     @PostMapping("/post/{id}/like")
-    @ResponseBody // ← これをつけると、リダイレクトせずに「値」だけを返せるようになります
+    @ResponseBody
     public Integer likePost(@PathVariable Long id) {
-        // 1. カウントを増やす
         postRepository.incrementLikes(id);
-        
-        // 2. 最新のいいね数を取得して、その「数字」だけを返す
         return postRepository.findById(id)
                 .map(Post::getLikesCount)
                 .orElse(0);
     }
-    
+
+    // フォロー / アンフォロー（AJAX）
     @PostMapping("/follow/{name}")
     @ResponseBody
     public String toggleFollow(@PathVariable String name) {
-        String me = "GuestUser"; // 本来はログインユーザー
-        
+
+        String me = "GuestUser";
+
         if (followRepository.existsByFollowerNameAndFollowingName(me, name)) {
             followRepository.deleteByFollowerNameAndFollowingName(me, name);
             return "unfollowed";
-        } else {
-            Follow follow = new Follow();
-            follow.setFollowerName(me);
-            follow.setFollowingName(name);
-            followRepository.save(follow);
-            return "followed";
         }
+
+        Follow follow = new Follow();
+        follow.setFollowerName(me);
+        follow.setFollowingName(name);
+        followRepository.save(follow);
+
+        return "followed";
     }
-    
+
+    // プロフィール表示
     @GetMapping("/profile/{name}")
     public String showProfile(@PathVariable String name, Model model) {
-        // 1. その人が「誰を」フォローしているか数える
-        long followingCount = followRepository.countByFollowerName(name);
-        
-        // 2. その人が「誰に」フォローされているか（フォロワー）数える
-        long followerCount = followRepository.countByFollowingName(name);
 
-        // HTMLに渡す
-        model.addAttribute("profileName", name); // 画面に表示する名前
-        model.addAttribute("followingCount", followingCount);
-        model.addAttribute("followerCount", followerCount);
-        
-        boolean isFollowing = followRepository.existsByFollowerNameAndFollowingName(name, name);
+        String me = "GuestUser";
+
+        model.addAttribute("profileName", name);
+        model.addAttribute("followingCount",
+                followRepository.countByFollowerName(name));
+        model.addAttribute("followerCount",
+                followRepository.countByFollowingName(name));
+
+        boolean isFollowing =
+                followRepository.existsByFollowerNameAndFollowingName(me, name);
         model.addAttribute("isFollowing", isFollowing);
 
-        return "home";
-        
-        
+        return "home"; // templates/home.html
     }
 }

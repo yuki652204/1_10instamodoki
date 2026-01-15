@@ -1,17 +1,93 @@
-/* フォローアイコンのホバー演出 */
-.fa-user-plus {
-    transition: transform 0.2s;
-    cursor: pointer;
+/* 全体の背景とフォント */
+body {
+    background-color: #fafafa !important;
+    color: #262626;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.fa-user-plus:hover {
-    transform: scale(1.2); /* マウスを乗せると少し大きく */
-    color: #0056b3;        /* 少し濃い青に */
+/* ユーザー情報のコンテナ（サイドバー風またはヘッダー風） */
+.user-info-container {
+    background-color: #ffffff;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-/* ボタンの枠線を消してアイコンだけに見せる */
-.btn-link {
-    border: none;
+.user-profile-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-profile-mini img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #dbdbdb;
+}
+
+.user-name-text {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* ログアウトボタン */
+.logout-btn {
     background: none;
-    text-decoration: none;
+    border: none;
+    color: #8e8e8e;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.logout-btn:hover {
+    background-color: #fff1f2;
+    color: #ed4956; /* ホバー時に赤色 */
+}
+
+/* 投稿カードのスタイル調整 */
+.card {
+    border: 1px solid #dbdbdb !important;
+    border-radius: 8px !important;
+}
+
+.card-header {
+    border-bottom: 1px solid #dbdbdb !important;
+    padding: 10px 15px !important;
+}
+
+/* いいねボタンの調整 */
+.like-button {
+    font-size: 1.2rem;
+    padding: 0;
+    transition: transform 0.1s ease;
+}
+
+.like-button:active {
+    transform: scale(1.2);
+}
+
+.likes-count {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* 投稿フォーム */
+.btn-primary {
+    background-color: #0095f6 !important;
+    border: none !important;
+    font-weight: 600 !important;
+}
+
+.btn-primary:hover {
+    background-color: #1877f2 !important;
 }
