@@ -12,7 +12,7 @@ services:
       - ./db_data:/var/lib/postgresql/data
 
   app:
-    build: .  # instacopyフォルダ直下のDockerfileを読み込む
+    build: .
     container_name: instacopy_app
     ports:
       - "9000:9000"
@@ -22,6 +22,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/blog_db
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
+      # --- ここを追加 ---
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: "827579251547-gd6qsu1k4tegalhi9c2dp60i6536nat9.apps.googleusercontent.com"
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: "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"
+      # Nginx(web)経由の認証を正しく動作させるための設定
+      SERVER_FORWARD_HEADERS_STRATEGY: native
 
   web:
     image: nginx:latest

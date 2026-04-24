@@ -22,24 +22,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // H2 Console等を使う場合は一旦disableにすることが多いです
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-            		// 1. ここが重要：ログインページ自体へのアクセスを「全員許可」にする
-                    .requestMatchers("/login", "/css/**", "/js/**", "/error").permitAll()
-                    // 2. それ以外はすべて認証が必要
-                    .anyRequest().authenticated()
+                .requestMatchers(
+                    "/login",       // ログイン画面自体は許可
+                    "/error",
+                    "/css/**",
+                    "/js/**",
+                    "/oauth2/**",
+                    "/login/oauth2/**" ,
+                    "/posts/**"
+                ).permitAll()
+                .anyRequest().authenticated() // これにより "/" もログインが必要になります
             )
             .oauth2Login(oauth2 -> oauth2
-//                .loginPage("/login")
+                .loginPage("/oauth2/authorization/google") // 未認証時に飛ばす先
                 .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService) // ここを修正
-                ) // ここに閉じ括弧が必要でした
-                .defaultSuccessUrl("/", true)
+                    .userService(customOAuth2UserService)
+                )
+                .defaultSuccessUrl("/", true) // ログイン成功後に "/" へ
             )
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
             );
-        
+
         return http.build();
     }
 }

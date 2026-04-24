@@ -32,7 +32,7 @@ public class BlogController {
     }
 
  // トップページ（ホーム）
-    @GetMapping
+    @GetMapping("/")
     public String index(Model model, @AuthenticationPrincipal OAuth2User principal) {
 
         // 1. ログインユーザー名とアイコンを取得
@@ -58,7 +58,7 @@ public class BlogController {
         model.addAttribute("posts", posts);
         model.addAttribute("profileName", me);
         model.addAttribute("userIcon", userIcon); // アイコンURLを渡す
-        model.addAttribute("userIcon", principal.getAttribute("picture"));
+        
         model.addAttribute("followingCount", followRepository.countByFollowerName(me));
         model.addAttribute("followerCount", followRepository.countByFollowingName(me));
 

@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+db_data/
+mysql_data/
+*.png
+.env
